@@ -1,0 +1,249 @@
+﻿<UserControl
+    x:Class="NumberBoxDemo.ConditionEditorView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:Interactions="using:Microsoft.Xaml.Interactions.Core"
+    xmlns:Interactivity="using:Microsoft.Xaml.Interactivity"
+    xmlns:controls="using:Microsoft.UI.Xaml.Controls"
+    xmlns:local="using:NumberBoxDemo"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:converters="using:kahua.host.uno.ui.converters"
+    mc:Ignorable="d"
+    x:DefaultBindMode="OneWay"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+  <UserControl.Resources>    
+      <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
+      <converters:ByteCountToKilobyteStringConverter x:Key="ByteCountToKilobyteStringConverter" />
+        <converters:EnumToLocalizedStringConverter x:Key="EnumToLocalizedStringConverter" />
+        <converters:DateTimeToDateTimeOffsetConverter x:Key="DateTimeToDateTimeOffsetConverter" />
+        <DataTemplate x:Key="EmptyTemplate">
+            <Border/>
+        </DataTemplate>
+
+        <DataTemplate x:Key="DateConditionItemNotSpecificDateTemplate">
+            <StackPanel Orientation="Horizontal">
+                <ComboBox Width="70"
+                          Margin="4"
+                          ItemsSource="{Binding Path=Parent.DateOffsetTypes}"
+                          SelectedItem="{Binding Path=SelectedDateOffsetType, Mode=TwoWay}">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Converter={StaticResource EnumToLocalizedStringConverter}}" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+                <controls:NumberBox Margin="4,0,0,0"
+                                    MinWidth="70"
+                                    VerticalAlignment="Center"
+                                    Maximum="9999"
+                                    Minimum="-9999"
+                                    SpinButtonPlacementMode="Inline"
+                                    Text="{Binding Path=Value, Mode=TwoWay}" />
+            </StackPanel>
+        </DataTemplate>
+        <DataTemplate x:Key="DateConditionItemSpecificDateTemplate">
+            <CalendarDatePicker MinWidth="90"
+                                Margin="4"
+                                Style="{StaticResource KahuaCalendarDatePickerStyle}"
+                                Date="{Binding Path=Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource DateTimeToDateTimeOffsetConverter}}"
+                                Visibility="{Binding IsSpecificDate}" />
+        </DataTemplate>
+        <DataTemplate x:Key="DataConditionItemDateTemplate">
+            <StackPanel Orientation="Horizontal">
+                <ComboBox Width="150"
+                          Margin="4"
+                          ItemsSource="{Binding Path=Parent.DateTypes}"
+                          SelectedItem="{Binding Path=SelectedDateType, Mode=TwoWay}"
+                          Visibility="{Binding IsDateTypeVisible}">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Converter={StaticResource EnumToLocalizedStringConverter}}" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+                <ContentControl x:Name="SpecificDateContent"
+                                Content="{Binding}"
+                                ContentTemplate="{StaticResource DateConditionItemNotSpecificDateTemplate}" >
+                    <Interactivity:Interaction.Behaviors>
+                        <Interactions:DataTriggerBehavior Binding="{Binding Path=IsSpecificDate}" Value="True">
+                            <Interactions:ChangePropertyAction PropertyName="ContentTemplate" Value="{StaticResource DateConditionItemSpecificDateTemplate}" />
+                        </Interactions:DataTriggerBehavior>
+                        <Interactions:DataTriggerBehavior Binding="{Binding Path=IsSpecificDate}" Value="False">
+                            <Interactions:ChangePropertyAction PropertyName="ContentTemplate" Value="{StaticResource DateConditionItemNotSpecificDateTemplate}" />
+                        </Interactions:DataTriggerBehavior>
+                    </Interactivity:Interaction.Behaviors>
+                </ContentControl>
+            </StackPanel>
+        </DataTemplate>
+        <DataTemplate x:Key="DataConditionItemTimeTemplate">
+            <TimePicker MinWidth="90"
+                        Margin="4"
+                        SelectedTime="{Binding Path=Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        Style="{StaticResource KahuaTimePicker24HourStyle}" />
+        </DataTemplate>
+        <DataTemplate x:Key="DataConditionItemWhereTemplate">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="17" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Border Margin="8,4,0,8"
+                    BorderBrush="{StaticResource KahuaSeparatorBackgroundBrush}"
+                    BorderThickness="1,0,0,1" />
+                <ContentControl Grid.Column="1"
+                                Margin="8,0,0,0"
+                                Content="{Binding Path=ChildConditionEditor}"
+                                ContentTemplate="{StaticResource ConditionEditorTemplate}" />
+            </Grid>
+        </DataTemplate>
+        <DataTemplate x:Key="DataConditionItemTemplate">
+            <ContentControl HorizontalAlignment="Stretch"
+                            VerticalAlignment="Stretch"
+                            IsEnabled="{Binding Path=Parent.IsReadOnly, Converter={StaticResource InverseBoolConverter}}">
+                <StackPanel Orientation="Vertical">
+                    
+                    <Grid Margin="2">
+                        <Grid Margin="8">
+                            <Grid.RowDefinitions>
+                                <RowDefinition />
+                                <RowDefinition />
+                            </Grid.RowDefinitions>
+                            <Grid Grid.Row="0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="32"/>
+                                </Grid.ColumnDefinitions>
+                                <ComboBox Grid.Column="0"
+                                          MinWidth="100"
+                                          Margin="4"
+                                          HorizontalAlignment="Left"
+                                          DisplayMemberPath="Label"
+                                          ItemsSource="{Binding Parent.Fields}"
+                                          SelectedItem="{Binding Field, Mode=TwoWay}"
+                                          ToolTipService.ToolTip="{Binding Path=SelectedItem.Label, RelativeSource={RelativeSource Self}}" />
+                                <ComboBox Grid.Column="1"
+                                          MinWidth="100"
+                                          Margin="4"
+                                          DisplayMemberPath="Label"
+                                          ItemsSource="{Binding Path=DataConditions}"
+                                          SelectedItem="{Binding Path=SelectedDataConditionTypeInfo, Mode=TwoWay}"
+                                          Visibility="{Binding IsDefined}" />
+                                <ContentControl Grid.Column="2"
+                                                x:Name="DateContent"
+                                                Content="{Binding}"
+                                                ContentTemplate="{StaticResource EmptyTemplate}" >
+                                    <Interactivity:Interaction.Behaviors>
+                                        <Interactions:DataTriggerBehavior Binding="{Binding IsDateCriteria}" Value="True">
+                                            <Interactions:ChangePropertyAction PropertyName="ContentTemplate" Value="{StaticResource DataConditionItemDateTemplate}" />
+                                        </Interactions:DataTriggerBehavior>
+                                        <Interactions:DataTriggerBehavior Binding="{Binding IsDateCriteria}" Value="False">
+                                            <Interactions:ChangePropertyAction PropertyName="ContentTemplate" Value="{StaticResource EmptyTemplate}" />
+                                        </Interactions:DataTriggerBehavior>
+                                    </Interactivity:Interaction.Behaviors>
+                                </ContentControl>
+                                <ContentControl Grid.Column="3"
+                                                x:Name="TimeContent"
+                                                Content="{Binding}"
+                                                ContentTemplate="{StaticResource EmptyTemplate}" >
+                                    <Interactivity:Interaction.Behaviors>
+                                        <Interactions:DataTriggerBehavior Binding="{Binding IsTimeCriteria}" Value="True">
+                                            <Interactions:ChangePropertyAction PropertyName="ContentTemplate" Value="{StaticResource DataConditionItemTimeTemplate}" />
+                                        </Interactions:DataTriggerBehavior>
+                                        <Interactions:DataTriggerBehavior Binding="{Binding IsTimeCriteria}" Value="False">
+                                            <Interactions:ChangePropertyAction PropertyName="ContentTemplate" Value="{StaticResource EmptyTemplate}" />
+                                        </Interactions:DataTriggerBehavior>
+                                    </Interactivity:Interaction.Behaviors>
+                                </ContentControl>
+                                <Grid Grid.Column="4">
+                                    <TextBox MinWidth="90"
+                                         Margin="4"
+                                         HorizontalAlignment="Stretch"
+                                         Text="{Binding Path=Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         Visibility="{Binding IsTextCriteria}">
+                              
+                                    </TextBox>
+                                    <TextBox MinWidth="90"
+                                             Margin="4"
+                                             HorizontalAlignment="Stretch"
+                                             Text="{Binding Path=Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource ByteCountToKilobyteStringConverter}}"
+                                             Visibility="{Binding IsFileSizeCriteria}" />
+                                </Grid>
+                                <Button Grid.Column="5"
+                                        Width="32"
+                                        Padding="0"
+                                        Command="{Binding Path=DeleteCommand}"
+                                        Visibility="{Binding IsDefined}">
+                                    <Button Width="10"
+                                                       Height="10"
+                                                       Content="X" />
+                                </Button>
+                            </Grid>
+                            <ContentControl x:Name="WhereContent"
+                                            Content="{Binding}"
+                                            Grid.Row="1"
+                                            ContentTemplate="{StaticResource EmptyTemplate}" >
+                                <Interactivity:Interaction.Behaviors>
+                                    <Interactions:DataTriggerBehavior Binding="{Binding IsWhereCriteria}" Value="True">
+                                        <Interactions:ChangePropertyAction PropertyName="ContentTemplate" Value="{StaticResource DataConditionItemWhereTemplate}" />
+                                    </Interactions:DataTriggerBehavior>
+                                    <Interactions:DataTriggerBehavior Binding="{Binding IsWhereCriteria}" Value="False">
+                                        <Interactions:ChangePropertyAction PropertyName="ContentTemplate" Value="{StaticResource EmptyTemplate}" />
+                                    </Interactions:DataTriggerBehavior>
+                                </Interactivity:Interaction.Behaviors>
+                            </ContentControl>
+                        </Grid>
+                    </Grid>
+                    <StackPanel Orientation="Vertical"  Margin="0,12">
+                        <StackPanel Orientation="Horizontal"
+                                    HorizontalAlignment="Left"
+                                    Visibility="{Binding IsDefined}">
+                            <RadioButton Margin="4,0"
+                                         Content="And"
+                                         MinWidth="0"
+                                         Padding="0,0,0,0"
+                                         IsChecked="{Binding Path=IsAndNesting, Mode=TwoWay}" />
+                            <RadioButton Margin="4,0"
+                                         MinWidth="0"
+                                         Padding="4,0,0,0"
+                                         Content="Or"
+                                         IsChecked="{Binding Path=IsOrNesting, Mode=TwoWay}" />
+                        </StackPanel>
+                        <Rectangle Height="1"
+                                   Margin="4,0,4,0"
+                                   HorizontalAlignment="Stretch"
+                                   VerticalAlignment="Center"
+                                   Fill="HotPink"
+                                   Visibility="{Binding IsDefined}" />
+                    </StackPanel>
+                </StackPanel>
+            </ContentControl>
+        </DataTemplate>
+        <DataTemplate x:Key="ConditionEditorTemplate">
+            <ScrollViewer Grid.Row="1"
+                          HorizontalScrollBarVisibility="Disabled"
+                          HorizontalScrollMode="Disabled"
+                          VerticalScrollBarVisibility="Auto"
+                          VerticalScrollMode="Auto">
+                <ItemsControl HorizontalAlignment="Stretch"
+                                        VerticalAlignment="Stretch"
+                                        ItemTemplate="{StaticResource DataConditionItemTemplate}"
+                                        ItemsSource="{Binding Conditions}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Vertical" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                </ItemsControl>
+            </ScrollViewer>
+        </DataTemplate>
+    </UserControl.Resources>
+    <Grid >
+    <ContentControl Content="{x:Bind Path=ViewModel}"
+                    ContentTemplate="{StaticResource ConditionEditorTemplate}" />
+    </Grid>
+</UserControl>
